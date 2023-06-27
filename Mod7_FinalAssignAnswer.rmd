@@ -1,0 +1,316 @@
+---
+title: "MIS503 - Final Project"
+author: "Grace Williams"
+date: "2023-04-24"
+output: word_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# MIS503 - Final Project
+## Williams, Grace
+### Zillow Home Value Index Analysis
+
+```{r libraries and data}
+library(tidyverse)
+library(readr)
+library(readxl)
+library(lubridate)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(shiny)
+
+SingleFamRental <- read_csv("SingleFamilyResidenceRental.csv")
+
+SingleFamSales <- read_csv("SingleFamilyResidenceSales.csv")
+```
+
+
+### Wake County Home Sales
+```{r Wake County Home Sales}
+WakeCountySales <- data.frame(SingleFamSales$RegionName, SingleFamSales$State, SingleFamSales$CountyName, SingleFamSales$`1996-05` , SingleFamSales$`1997-05`, SingleFamSales$`1998-05`, SingleFamSales$`1999-05`, SingleFamSales$`2000-05`, SingleFamSales$`2001-05`, SingleFamSales$`2002-05`, SingleFamSales$`2003-05`, SingleFamSales$`2004-05`, SingleFamSales$`2005-05`, SingleFamSales$`2006-05`, SingleFamSales$`2007-05`, SingleFamSales$`2008-05`, SingleFamSales$`2009-05`, SingleFamSales$`2010-05`, SingleFamSales$`2011-05`, SingleFamSales$`2012-05`, SingleFamSales$`2013-05`, SingleFamSales$`2014-05`, SingleFamSales$`2015-05`, SingleFamSales$`2016-05`, SingleFamSales$`2017-05`, SingleFamSales$`2018-05`)%>%
+  filter(SingleFamSales$State == "NC", SingleFamSales$CountyName == "Wake County")
+
+#Rename Columns
+
+names(WakeCountySales)[names(WakeCountySales) == 'SingleFamSales.RegionName'] <- "RegionName"
+names(WakeCountySales)[names(WakeCountySales) == 'SingleFamSales.State'] <- "State"
+names(WakeCountySales)[names(WakeCountySales) == 'SingleFamSales.CountyName'] <- "CountyName"
+names(WakeCountySales)[names(WakeCountySales) == 'SingleFamSales..1996.05.'] <- "1996" 
+names(WakeCountySales)[names(WakeCountySales) == 'SingleFamSales..1997.05.'] <- "1997" 
+names(WakeCountySales)[names(WakeCountySales) == 'SingleFamSales..1998.05.'] <- "1998" 
+names(WakeCountySales)[names(WakeCountySales) == 'SingleFamSales..1999.05.'] <- "1999" 
+names(WakeCountySales)[names(WakeCountySales) == 'SingleFamSales..2000.05.'] <- "2000" 
+names(WakeCountySales)[names(WakeCountySales) == 'SingleFamSales..2001.05.'] <- "2001" 
+names(WakeCountySales)[names(WakeCountySales) == 'SingleFamSales..2002.05.'] <- "2002" 
+names(WakeCountySales)[names(WakeCountySales) == 'SingleFamSales..2003.05.'] <- "2003" 
+names(WakeCountySales)[names(WakeCountySales) == 'SingleFamSales..2004.05.'] <- "2004" 
+names(WakeCountySales)[names(WakeCountySales) == 'SingleFamSales..2005.05.'] <- "2005" 
+names(WakeCountySales)[names(WakeCountySales) == 'SingleFamSales..2006.05.'] <- "2006" 
+names(WakeCountySales)[names(WakeCountySales) == 'SingleFamSales..2007.05.'] <- "2007" 
+names(WakeCountySales)[names(WakeCountySales) == 'SingleFamSales..2008.05.'] <- "2008" 
+names(WakeCountySales)[names(WakeCountySales) == 'SingleFamSales..2009.05.'] <- "2009" 
+names(WakeCountySales)[names(WakeCountySales) == 'SingleFamSales..2010.05.'] <- "2010" 
+names(WakeCountySales)[names(WakeCountySales) == 'SingleFamSales..2011.05.'] <- "2011" 
+names(WakeCountySales)[names(WakeCountySales) == 'SingleFamSales..2012.05.'] <- "2012" 
+names(WakeCountySales)[names(WakeCountySales) == 'SingleFamSales..2013.05.'] <- "2013" 
+names(WakeCountySales)[names(WakeCountySales) == 'SingleFamSales..2014.05.'] <- "2014" 
+names(WakeCountySales)[names(WakeCountySales) == 'SingleFamSales..2015.05.'] <- "2015" 
+names(WakeCountySales)[names(WakeCountySales) == 'SingleFamSales..2016.05.'] <- "2016" 
+names(WakeCountySales)[names(WakeCountySales) == 'SingleFamSales..2017.05.'] <- "2017" 
+names(WakeCountySales)[names(WakeCountySales) == 'SingleFamSales..2018.05.'] <- "2018" 
+
+#Clean it up
+
+WakeCountySales %>%
+  group_by(RegionName)
+
+#For my ease of use I simply created another object to prevent confusion.
+
+WakeCountySales2 <- WakeCountySales %>%
+  pivot_longer(cols=c("1996","1997","1998","1999","2000","2001","2002","2003","2004","2005","2006","2007","2008","2009","2010","2011","2012","2013","2014","2015","2016","2017","2018"),
+               names_to = "YR",
+               values_to = "ZHVI",
+               values_drop_na = TRUE)
+
+
+#Analysis
+
+WakeCountySales2 %>%
+  ggplot(aes(YR,ZHVI, xlab="Year", ylab="ZHVI"))+
+  geom_point(aes(color= RegionName))+
+  labs(title ="Wake County Home Sales")+
+  theme(axis.text.x = element_text(angle = 90, vjust=0.5))+
+  scale_y_continuous(name="Home Values (in $)", labels = scales::comma)
+
+```
+
+```{r column graph}
+WakeCountySales2 %>%
+  ggplot(aes(YR,ZHVI, xlab="Year", ylab="ZHVI"))+
+  geom_col(aes(color= RegionName))+
+  labs(title ="Wake County Home Sales")+
+  theme(axis.text.x = element_text(angle = 90, vjust=0.5))+
+  scale_y_continuous(name="Home Values (in $)", labels = scales::comma)
+
+```
+
+#  You are considering a move to the Raleigh area and are interested in understanding trends in home values. Run the analysis in the instructions below and come back to this section of the R Markdown document and address the following questions:
+
+# a. What have been the overall trends in Wake County Home Values?
+## The overall trend is increasing values.
+
+# b. There were dips in home values in the past 20 years. What years did these occur?
+## There were two dips, one from 1996 to 1999 then another from 2008 to 2012.
+
+# c. Based on the analysis, where would be the least expensive area to purchase home? Most expensive area?
+## Least expensive appears to be Zebulon and the most expensive is New Hill
+
+# d. Are any area home values trending down? Is there one area that stands out compared to others?
+## Zebulon seems to be dipping more than others but the lowest 5 seem to be reaching a peak before dipping. New Hill stands furthest out as the highest value.
+
+
+### NC Rental Market
+
+```{r}
+Rentals <- data.frame(SingleFamRental$RegionName, SingleFamRental$State, SingleFamRental$`2010-11`, SingleFamRental$`2011-11`, SingleFamRental$`2012-11`, SingleFamRental$`2013-11`, SingleFamRental$`2014-11`, SingleFamRental$`2015-11`, SingleFamRental$`2016-11`, SingleFamRental$`2017-11`, SingleFamRental$`2018-10`) %>%
+  filter(SingleFamRental$State== "NC" & SingleFamRental$RegionName %in%
+           c("Asheville","Charlotte","Durham","Fayetteville","Raleigh","Wilmington"))
+
+#Rename Columns
+
+names(Rentals)[names(Rentals) == 'SingleFamRental.RegionName'] <- "RegionName" 
+names(Rentals)[names(Rentals) == 'SingleFamRental.State'] <- "State" 
+names(Rentals)[names(Rentals) == 'SingleFamRental..2010.11.'] <- "2010"
+names(Rentals)[names(Rentals) == 'SingleFamRental..2011.11.'] <- "2011"
+names(Rentals)[names(Rentals) == 'SingleFamRental..2012.11.'] <- "2012"
+names(Rentals)[names(Rentals) == 'SingleFamRental..2013.11.'] <- "2013"
+names(Rentals)[names(Rentals) == 'SingleFamRental..2014.11.'] <- "2014"
+names(Rentals)[names(Rentals) == 'SingleFamRental..2015.11.'] <- "2015"
+names(Rentals)[names(Rentals) == 'SingleFamRental..2016.11.'] <- "2016"
+names(Rentals)[names(Rentals) == 'SingleFamRental..2017.11.'] <- "2017"
+names(Rentals)[names(Rentals) == 'SingleFamRental..2018.10.'] <- "2018"
+
+
+#Clean it up
+
+Rentals %>%
+  group_by(RegionName)
+
+#To minimize my confusion I create a second Rentals
+
+Rentals2 <- Rentals %>%
+  pivot_longer(cols=c("2010","2011","2012","2013","2014","2015","2016","2017","2018"),
+               names_to = "YR",
+               values_to = "ZHVI",
+               values_drop_na = TRUE)
+
+Rentals2 %>%
+  ggplot(aes(YR,ZHVI, xlab="Year", ylab="ZHVI"))+
+  geom_point(aes(color= RegionName))+
+  labs(title ="Wake County Rental Prices")+
+  theme(axis.text.x = element_text(angle = 90, vjust=0.5))+
+  scale_y_continuous(name="Home Values (in $)", labels = scales::comma)
+
+
+Rentals2 %>%
+  ggplot(aes(YR,ZHVI, xlab="Year", ylab="ZHVI"))+
+  geom_col(aes(color= RegionName))+
+  labs(title ="Wake County Rental Prices")+
+  theme(axis.text.x = element_text(angle = 90, vjust=0.5))+
+  scale_y_continuous(name="Home Values (in $)", labels = scales::comma)
+```
+
+# You are considering relocating to a new city and want to rent. You are looking at some of the larger cities within the state including Asheville, Charlotte, Durham, Fayetteville, Raleigh and Wilmington. Answer the following based upon the analysis above:
+
+# a. What has been the overall trend in the rental market around the state? Are there any cities that have not followed this trend?
+## Overall the rent prices have increased around the state. Fayetteville is the only city that is not following the trend.
+
+# b. Where is the most expensive city to rent in? Least expensive?
+## The most expensive city to rent in is Asheville, Fayetteville is the least expensive.
+
+# c. You are trying decide between Wilmington and Asheville. Which market has the lowest rent?
+## Wilmington has a lower rent than Asheville.
+
+
+
+### Home Values in Select Rental Markets
+
+```{r}
+NCHomeSales <- data.frame(SingleFamSales$RegionName, SingleFamSales$State, SingleFamSales$Metro, SingleFamSales$`1996-05` , SingleFamSales$`1997-05`, SingleFamSales$`1998-05`, SingleFamSales$`1999-05`, SingleFamSales$`2000-05`, SingleFamSales$`2001-05`, SingleFamSales$`2002-05`, SingleFamSales$`2003-05`, SingleFamSales$`2004-05`, SingleFamSales$`2005-05`, SingleFamSales$`2006-05`, SingleFamSales$`2007-05`, SingleFamSales$`2008-05`, SingleFamSales$`2009-05`, SingleFamSales$`2010-05`, SingleFamSales$`2011-05`, SingleFamSales$`2012-05`, SingleFamSales$`2013-05`, SingleFamSales$`2014-05`, SingleFamSales$`2015-05`, SingleFamSales$`2016-05`, SingleFamSales$`2017-05`, SingleFamSales$`2018-05`)%>%
+  filter(SingleFamSales$State == "NC", SingleFamSales$Metro %in%
+           c("Asheville","Charlotte-Concord-Gastonia","Raleigh","Wilmington"))
+
+
+names(NCHomeSales)[names(NCHomeSales) == 'SingleFamSales.RegionName'] <- "RegionName"
+names(NCHomeSales)[names(NCHomeSales) == 'SingleFamSales.State'] <- "State"
+names(NCHomeSales)[names(NCHomeSales) == 'SingleFamSales.Metro'] <- "Metro"
+names(NCHomeSales)[names(NCHomeSales) == 'SingleFamSales..1996.05.'] <- "1996" 
+names(NCHomeSales)[names(NCHomeSales) == 'SingleFamSales..1997.05.'] <- "1997" 
+names(NCHomeSales)[names(NCHomeSales) == 'SingleFamSales..1998.05.'] <- "1998" 
+names(NCHomeSales)[names(NCHomeSales) == 'SingleFamSales..1999.05.'] <- "1999" 
+names(NCHomeSales)[names(NCHomeSales) == 'SingleFamSales..2000.05.'] <- "2000" 
+names(NCHomeSales)[names(NCHomeSales) == 'SingleFamSales..2001.05.'] <- "2001" 
+names(NCHomeSales)[names(NCHomeSales) == 'SingleFamSales..2002.05.'] <- "2002" 
+names(NCHomeSales)[names(NCHomeSales) == 'SingleFamSales..2003.05.'] <- "2003" 
+names(NCHomeSales)[names(NCHomeSales) == 'SingleFamSales..2004.05.'] <- "2004" 
+names(NCHomeSales)[names(NCHomeSales) == 'SingleFamSales..2005.05.'] <- "2005" 
+names(NCHomeSales)[names(NCHomeSales) == 'SingleFamSales..2006.05.'] <- "2006" 
+names(NCHomeSales)[names(NCHomeSales) == 'SingleFamSales..2007.05.'] <- "2007" 
+names(NCHomeSales)[names(NCHomeSales) == 'SingleFamSales..2008.05.'] <- "2008" 
+names(NCHomeSales)[names(NCHomeSales) == 'SingleFamSales..2009.05.'] <- "2009" 
+names(NCHomeSales)[names(NCHomeSales) == 'SingleFamSales..2010.05.'] <- "2010" 
+names(NCHomeSales)[names(NCHomeSales) == 'SingleFamSales..2011.05.'] <- "2011" 
+names(NCHomeSales)[names(NCHomeSales) == 'SingleFamSales..2012.05.'] <- "2012" 
+names(NCHomeSales)[names(NCHomeSales) == 'SingleFamSales..2013.05.'] <- "2013" 
+names(NCHomeSales)[names(NCHomeSales) == 'SingleFamSales..2014.05.'] <- "2014" 
+names(NCHomeSales)[names(NCHomeSales) == 'SingleFamSales..2015.05.'] <- "2015" 
+names(NCHomeSales)[names(NCHomeSales) == 'SingleFamSales..2016.05.'] <- "2016" 
+names(NCHomeSales)[names(NCHomeSales) == 'SingleFamSales..2017.05.'] <- "2017" 
+names(NCHomeSales)[names(NCHomeSales) == 'SingleFamSales..2018.05.'] <- "2018"
+
+
+NCHomeSales%>%
+  group_by(Metro)
+
+NCHomeSales2 <- NCHomeSales %>%
+  pivot_longer(cols=c("1996","1997","1998","1999","2000","2001","2002","2003","2004","2005","2006","2007","2008","2009","2010","2011","2012","2013","2014","2015","2016","2017","2018"),
+               names_to = "YR",
+               values_to = "ZHVI",
+               values_drop_na = TRUE)
+
+NCHomeSales2%>%
+  group_by(Metro)
+
+
+NCHomeSales2 %>%
+  ggplot(aes(Metro,ZHVI))+
+  geom_violin()+
+  geom_boxplot(width=0.1)+
+  scale_y_continuous(labels = function(x) format(x, scientific = FALSE))
+
+```
+
+# You have made the choice that you want to focus on 4 regions (Asheville, Charlotte-Concord-Gastonia, Raleigh and Wilmington) and instead of renting, you would like to purchase a home. Run the analysis above to answer the following:
+
+# a.According to the results, which market has the lowest median price (represented as horizontal bar in box plot)?
+## The Charlotte-Concord-Gastonia metro area.
+
+# b. The violin plot will show density meaning the wider the plot is, the more observations occur within that area. Which market has the most density around the median value of homes?
+## The Charlotte-Concord-Gastonia metro area, closely followed by the Raleigh area.
+
+
+### Relocation Home Value Comparison
+
+```{r}
+NationalHomeSales <- data.frame(SingleFamSales$RegionName, SingleFamSales$State, SingleFamSales$Metro, SingleFamSales$`1996-05` , SingleFamSales$`1997-05`, SingleFamSales$`1998-05`, SingleFamSales$`1999-05`, SingleFamSales$`2000-05`, SingleFamSales$`2001-05`, SingleFamSales$`2002-05`, SingleFamSales$`2003-05`, SingleFamSales$`2004-05`, SingleFamSales$`2005-05`, SingleFamSales$`2006-05`, SingleFamSales$`2007-05`, SingleFamSales$`2008-05`, SingleFamSales$`2009-05`, SingleFamSales$`2010-05`, SingleFamSales$`2011-05`, SingleFamSales$`2012-05`, SingleFamSales$`2013-05`, SingleFamSales$`2014-05`, SingleFamSales$`2015-05`, SingleFamSales$`2016-05`, SingleFamSales$`2017-05`, SingleFamSales$`2018-05`)%>%
+  filter(SingleFamSales$State %in% c("IL", "NY", "CO","TX") &
+    SingleFamSales$RegionName %in%
+           c("Chicago","Denver","Houston","New York"))
+
+
+names(NationalHomeSales)[names(NationalHomeSales) == 'SingleFamSales.RegionName'] <- "RegionName"
+names(NationalHomeSales)[names(NationalHomeSales) == 'SingleFamSales.State'] <- "State"
+names(NationalHomeSales)[names(NationalHomeSales) == 'SingleFamSales.Metro'] <- "Metro"
+names(NationalHomeSales)[names(NationalHomeSales) == 'SingleFamSales..1996.05.'] <- "1996" 
+names(NationalHomeSales)[names(NationalHomeSales) == 'SingleFamSales..1997.05.'] <- "1997" 
+names(NationalHomeSales)[names(NationalHomeSales) == 'SingleFamSales..1998.05.'] <- "1998" 
+names(NationalHomeSales)[names(NationalHomeSales) == 'SingleFamSales..1999.05.'] <- "1999" 
+names(NationalHomeSales)[names(NationalHomeSales) == 'SingleFamSales..2000.05.'] <- "2000" 
+names(NationalHomeSales)[names(NationalHomeSales) == 'SingleFamSales..2001.05.'] <- "2001" 
+names(NationalHomeSales)[names(NationalHomeSales) == 'SingleFamSales..2002.05.'] <- "2002" 
+names(NationalHomeSales)[names(NationalHomeSales) == 'SingleFamSales..2003.05.'] <- "2003" 
+names(NationalHomeSales)[names(NationalHomeSales) == 'SingleFamSales..2004.05.'] <- "2004" 
+names(NationalHomeSales)[names(NationalHomeSales) == 'SingleFamSales..2005.05.'] <- "2005" 
+names(NationalHomeSales)[names(NationalHomeSales) == 'SingleFamSales..2006.05.'] <- "2006" 
+names(NationalHomeSales)[names(NationalHomeSales) == 'SingleFamSales..2007.05.'] <- "2007" 
+names(NationalHomeSales)[names(NationalHomeSales) == 'SingleFamSales..2008.05.'] <- "2008" 
+names(NationalHomeSales)[names(NationalHomeSales) == 'SingleFamSales..2009.05.'] <- "2009" 
+names(NationalHomeSales)[names(NationalHomeSales) == 'SingleFamSales..2010.05.'] <- "2010" 
+names(NationalHomeSales)[names(NationalHomeSales) == 'SingleFamSales..2011.05.'] <- "2011" 
+names(NationalHomeSales)[names(NationalHomeSales) == 'SingleFamSales..2012.05.'] <- "2012" 
+names(NationalHomeSales)[names(NationalHomeSales) == 'SingleFamSales..2013.05.'] <- "2013" 
+names(NationalHomeSales)[names(NationalHomeSales) == 'SingleFamSales..2014.05.'] <- "2014" 
+names(NationalHomeSales)[names(NationalHomeSales) == 'SingleFamSales..2015.05.'] <- "2015" 
+names(NationalHomeSales)[names(NationalHomeSales) == 'SingleFamSales..2016.05.'] <- "2016" 
+names(NationalHomeSales)[names(NationalHomeSales) == 'SingleFamSales..2017.05.'] <- "2017" 
+names(NationalHomeSales)[names(NationalHomeSales) == 'SingleFamSales..2018.05.'] <- "2018" 
+
+
+NationalHomeSales %>%
+  group_by(Metro)
+
+#For my ease of use I simply created another object to prevent confusion.
+
+NationalHomeSales2 <- NationalHomeSales %>%
+  pivot_longer(cols=c("1996","1997","1998","1999","2000","2001","2002","2003","2004","2005","2006","2007","2008","2009","2010","2011","2012","2013","2014","2015","2016","2017","2018"),
+               names_to = "YR",
+               values_to = "ZHVI",
+               values_drop_na = TRUE)
+
+NationalHomeSales2 %>%
+  ggplot(aes(YR,ZHVI, xlab="Year", ylab="ZHVI"))+
+  geom_point()+
+  facet_wrap(~Metro)+
+  labs(title ="City Home Value Comparison")+
+  theme(axis.text.x = element_text(angle = 90, vjust=0.5, size=5))+
+  scale_y_continuous(name="Home Values (in $)", labels = scales::comma)
+
+    
+```
+
+# You have been given a new opportunity to relocate for a new position within your company. They have given you the option of 4 different areas in the country (Chicago, Denver, Houston or New York). Run the analysis in the instructions below and come back to this section of the R Markdown document and address the following questions:
+
+# a. Based on your analysis, which city’s housing is most affordable? Least affordable?
+## The most affordable is the Houston area. The least affordable is the New York area.
+
+# b. Which cities saw the largest change in prices over the past 5 years? Which city has remained more consistent (i.e., no huge swings up or down in home values)?
+## The New York and Dever areas saw the greatest change in prices over the last 5 years. Houston has remained the most consistent and Chicago also being consistent.
+
+# c. During the market downturn in 2012, which cities were most impacted? Which cities have recovered?
+## New York was the most impacted and recovered greater than before the down turn. Chicago also had a down-turn but barely recovered. 
